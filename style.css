@@ -1,0 +1,43 @@
+.bar {
+  fill: steelblue;
+  stroke: white;
+}
+
+.bar:hover {
+  fill: #635f50;
+}
+
+#tooltip {
+  padding: 30px;
+  background-color: #be88838f;
+  font-size: 30px;
+  fill: darkolivegreen;
+}
+
+text {
+  font-size: 14px;
+  font-family: sans-serif;
+}
+
+.desc {
+  overflow-x: scroll;
+}
+
+.tick text {
+  font-size: 2em;
+  fill: #635f50;
+}
+
+.tick line {
+  stroke: #c0c0bb;
+}
+
+.axis-label {
+  font-size: 1.3em;
+  fill: #be8883;
+}
+
+#title {
+  font-size: 3.2em;
+  fill: #635f50;
+}

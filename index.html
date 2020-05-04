@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>D3 Bar Chart: Showing GDP</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- <script src="https://d3js.org/d3.v5.min.js"></script> -->
+    <script src="d3.js"></script>
+    <script>
+      // Mostly used const
+      const width = 1080;
+      const height = 700;
+      const margin = { top: 50, right: 50, bottom: 210, left: 130 };
+      const innerWidth = width - margin.left - margin.right;
+      const innerHeight = height - margin.top - margin.bottom;
+
+      // Appending a svg element to a body element
+      const svg = d3.select('body').append('svg');
+      svg.attr('width', width).attr('height', height);
+      const g = svg
+        .append('g')
+        .attr('transform', `translate(${margin.left},${margin.top})`);
+
+      const render = (data) => {
+        const xValue = (d) => {
+          let date = [];
+          let str = '';
+          data.forEach((d) => {
+            switch (d[0].substring(5, 7)) {
+              case '01':
+                str = ' Q1';
+                break;
+              case '04':
+                str = ' Q2';
+                break;
+              case '07':
+                str = ' Q3';
+                break;
+              case '10':
+                str = ' Q4';
+                break;
+            }
+            date.push(d[0].substring(0, 4) + str);
+          });
+          return date;
+        };
+
+        const years = (d) => {
+          let year = [];
+          for (let i = 0; i < data.length; i++) {
+            year.push(Number(data[i][0].substring(0, 4)));
+            //i += 3;
+          }
+          return year;
+        };
+
+        const yValue = (d) => {
+          let gdp = [];
+          data.forEach((d) => {
+            gdp.push(d[1]);
+          });
+          return gdp;
+        };
+
+        // Linear scale for Years
+        const xScale = d3
+          .scaleBand()
+          .domain(xValue().map((d) => d))
+          .range([0, innerWidth]);
+
+        // Linear scale for X coordinate of rectangles
+        const xScaleX = d3
+          .scaleLinear()
+          .domain([0, 274])
+          .range([0, innerWidth]);
+
+        // Linear scale for the X-Axis
+        const yearScale = d3
+          .scaleLinear()
+          .domain([1947, 2015])
+          .range([0, innerWidth]);
+
+        // Linear scale for gdp
+        const yScale = d3
+          .scaleLinear()
+          .domain([0, d3.max(yValue())])
+          .range([0, innerHeight]);
+
+        // Linear scale for Y-Axis
+        const yScaleAxis = d3
+          .scaleLinear()
+          .domain([0, d3.max(yValue())])
+          .range([innerHeight, 0]);
+
+        g.append('g')
+          .attr('transform', `translate(-4,0)`)
+          .attr('id', 'y-axis')
+          .call(d3.axisLeft(yScaleAxis));
+
+        g.append('g')
+          .attr('transform', `translate(-4,${innerHeight})`)
+          .attr('id', 'x-axis')
+          .call(d3.axisBottom(yearScale));
+
+        g.append('text').text('');
+
+        g.selectAll('rect')
+          .data(data)
+          .enter()
+          .append('rect')
+          .attr('x', (d, i) => xScaleX(i) - 3)
+          .attr('y', (d) => innerHeight - yScale(d[1]))
+          .attr('width', (d) => xScale.bandwidth())
+          .attr('height', (d) => yScale(d[1]))
+          .attr('class', 'bar')
+          .attr('data-date', (d) => d[0])
+          .attr('data-gdp', (d) => d[1]);
+
+        g.selectAll('rect')
+          .append('title')
+          .text((d) => d)
+          .attr('id', 'tooltip')
+          .attr('data-date', (d) => d[0]);
+      };
+
+      const texts = (name) => {
+        g.append('text')
+          .text('Quarterly Gross Domestic Product')
+          .attr('id', 'title')
+          .attr('y', -10);
+
+        g.append('text')
+          .text(name)
+          .attr('class', 'axis-label')
+          .attr('transform', `translate(-90,${innerHeight}) rotate(-90)`);
+
+        g.append('text')
+          .text('Quaters of Years')
+          .attr('class', 'axis-label')
+          .attr(
+            'transform',
+            `translate(${innerWidth / 2 - 100},${innerHeight + 50})`
+          );
+      };
+      const description = (srcName) => {
+        g.append('text')
+          .text(`Source:${srcName}`)
+          .attr('class', 'desc')
+          .attr('transform', `translate(0,${innerHeight + 80})`);
+
+        g.append('text')
+          .text('Units: Billions of Dollars')
+          .attr('class', 'desc')
+          .attr('transform', `translate(0,${innerHeight + 110})`);
+
+        g.append('text')
+          .text('Seasonal Adjustment: Seasonally Adjusted Annual Rate')
+          .attr('class', 'desc')
+          .attr('transform', `translate(0,${innerHeight + 140})`);
+
+        g.append('text')
+          .text(
+            'Notes: A Guide to the National Income and Product Accounts of the United States (NIPA)'
+          )
+          .attr('class', 'desc')
+          .attr('transform', `translate(0,${innerHeight + 170})`);
+
+        g.append('text')
+          .text('Link: http://www.bea.gov/national/pdf/nipaguid.pdf')
+          .attr('class', 'desc')
+          .attr('transform', `translate(0,${innerHeight + 200})`);
+      };
+
+      // Fetching data from external source
+      let url =
+        'https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/master/GDP-data.json';
+      fetch(url)
+        .then((res) => res.json())
+        .then((data) => {
+          texts(data.name);
+          render(data.data);
+          description(data.source_name);
+        })
+        .catch((e) => console.log(e));
+    </script>
+  </body>
+</html>
